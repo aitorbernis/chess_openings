@@ -9,6 +9,11 @@ const steinitzDefense: Opening = {
     { from: "f1", to: "b5" },
     { from: "d7", to: "d6" },
   ],
+  family: {
+    code: "ruyLopez",
+    name: "Ruy López",
+  },
+  isDefault: false,
   code: "steinitzDefense",
   name: "Defensa Steinitz",
 };

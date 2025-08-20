@@ -9,7 +9,11 @@ const berlinDefense: Opening = {
     { from: "f1", to: "b5" },
     { from: "g8", to: "f6" },
   ],
-
+  family: {
+    code: "ruyLopez",
+    name: "Ruy López",
+  },
+  isDefault: false,
   code: "berlinDefense",
   name: "Defensa Berlín",
 };

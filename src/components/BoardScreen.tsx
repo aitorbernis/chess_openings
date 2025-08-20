@@ -8,13 +8,21 @@ type Props = {
   code: Opening["code"];
   items: Record<string, Opening>;
   onBack: () => void;
+  footer?: React.ReactNode;
+  fullHeight?: boolean;
 };
 
 function getPly(game: Chess) {
   return game.history().length;
 }
 
-export default function BoardScreen({ code, items, onBack }: Props) {
+export default function BoardScreen({
+  code,
+  items,
+  onBack,
+  footer,
+  fullHeight = true,
+}: Props) {
   const opening = items[code];
   const chessGameRef = useRef(new Chess());
   const [fen, setFen] = useState(chessGameRef.current.fen());
@@ -108,7 +116,7 @@ export default function BoardScreen({ code, items, onBack }: Props) {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: fullHeight ? "100vh" : "auto", // 👈 clave
         background: "#111",
         color: "#eee",
         padding: 16,
@@ -120,7 +128,7 @@ export default function BoardScreen({ code, items, onBack }: Props) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: 16,
+          marginBottom: 12, // 16 -> 12 para compactar
           gap: 12,
         }}
       >
@@ -171,11 +179,26 @@ export default function BoardScreen({ code, items, onBack }: Props) {
             arrows,
             boardStyle: {
               width: boardSize,
-              height: boardSize, // mantiene el cuadrado sin “flash”
+              height: boardSize,
             },
           }}
         />
       </div>
+
+      {/* Footer interno: queda pegado al tablero, sin scroll extra */}
+      {footer && (
+        <div
+          style={{
+            marginTop: 12, // compacto
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          {footer}
+        </div>
+      )}
     </div>
   );
 }

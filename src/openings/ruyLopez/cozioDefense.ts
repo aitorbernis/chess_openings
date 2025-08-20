@@ -9,7 +9,11 @@ const cozioDefense: Opening = {
     { from: "f1", to: "b5" },
     { from: "g8", to: "e7" },
   ],
-
+  family: {
+    code: "ruyLopez",
+    name: "Ruy López",
+  },
+  isDefault: false,
   code: "cozioDefense",
   name: "Defensa Cozio",
 };

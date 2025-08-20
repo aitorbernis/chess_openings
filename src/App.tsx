@@ -1,27 +1,35 @@
 import { useState } from "react";
-import { openings } from "./openings/openings";
-import type { Opening } from "./openings/types";
-import OpeningPicker from "./components/OpeningPicker";
-import BoardScreen from "./components/BoardScreen";
+import { families } from "./openings/openings";
+import type { FamilyGroup } from "./openings/openings";
+import FamilyPicker from "./components/FamilyPicker";
+import FamilyBoard from "./components/FamilyBoard";
 
 export default function App() {
-  const [openingCode, setOpeningCode] = useState<Opening["code"] | null>(null);
+  const [familyCode, setFamilyCode] = useState<string | null>(null);
 
-  // “Routing” súper simple: null => picker, code => tablero
-  if (!openingCode) {
+  if (!familyCode) {
     return (
-      <OpeningPicker
-        items={openings}
-        onSelect={(code) => setOpeningCode(code)}
+      <FamilyPicker
+        families={families}
+        onSelectFamily={(code) => setFamilyCode(code)}
       />
     );
   }
 
+  const family: FamilyGroup | undefined = families[familyCode];
+  if (!family) {
+    return (
+      <div style={{ color: "#eee", background: "#111", minHeight: "100vh" }}>
+        <p>Familia no encontrada.</p>
+        <button onClick={() => setFamilyCode(null)}>Volver</button>
+      </div>
+    );
+  }
+
   return (
-    <BoardScreen
-      code={openingCode}
-      items={openings}
-      onBack={() => setOpeningCode(null)}
+    <FamilyBoard
+      family={family}
+      onBack={() => setFamilyCode(null)} // ← sale a la lista de familias
     />
   );
 }

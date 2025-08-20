@@ -16,7 +16,11 @@ const exchangeRuyLopez: Opening = {
     { from: "e5", to: "d4" },
     { from: "d1", to: "d4" },
   ],
-
+  family: {
+    code: "ruyLopez",
+    name: "Ruy López",
+  },
+  isDefault: false,
   code: "exchangeRuyLopez",
   name: "Ruy López (Variante del Cambio)",
 };

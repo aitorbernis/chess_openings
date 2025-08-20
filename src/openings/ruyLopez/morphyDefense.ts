@@ -9,7 +9,11 @@ const morphyDefense: Opening = {
     { from: "f1", to: "b5" },
     { from: "a7", to: "a6" },
   ],
-
+  family: {
+    code: "ruyLopez",
+    name: "Ruy López",
+  },
+  isDefault: false,
   code: "morphyDefense",
   name: "Defensa Morphy",
 };

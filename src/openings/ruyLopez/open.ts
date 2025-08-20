@@ -19,7 +19,11 @@ const openRuyLopez: Opening = {
     { from: "d4", to: "e5" },
     { from: "c8", to: "e6" },
   ],
-
+  family: {
+    code: "ruyLopez",
+    name: "Ruy López",
+  },
+  isDefault: false,
   code: "openRuyLopez",
   name: "Ruy López Abierta",
 };

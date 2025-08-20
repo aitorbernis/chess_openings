@@ -8,7 +8,11 @@ const ruyLopez: Opening = {
     { from: "b8", to: "c6" },
     { from: "f1", to: "b5" },
   ],
-
+  family: {
+    code: "ruyLopez",
+    name: "Ruy López",
+  },
+  isDefault: true,
   code: "ruyLopez",
   name: "Ruy Lopez",
 };
