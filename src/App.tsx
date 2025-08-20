@@ -1,139 +1,186 @@
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import type { PieceDropHandlerArgs } from "react-chessboard";
-import { openings, type Opening } from "./openings";
+import { openings } from "./openings/openings";
+import type { Opening } from "./openings/types";
 
-/**
- * App.tsx — Minimal board based on chessboard.js example #5002
- * - Drag & drop with legal move check via chess.js
- * - Snap back on illegal moves
- * - Reset + Flip
- */
+/* -------- Helpers -------- */
+function getPly(game: Chess) {
+  return game.history().length;
+}
+
+function expectedMove(opening: Opening, ply: number) {
+  return opening.moves[ply];
+}
 
 export default function App() {
   const chessGameRef = useRef(new Chess());
   const chessGame = chessGameRef.current;
-  const [chessPosition, setChessPosition] = useState(chessGame.fen());
 
-  const [selectedOpening, setSelectedOpening] = useState<{
-    code: Opening["code"];
-    name: Opening["name"];
-  }>({ code: openings.ruyLopez.code, name: openings.ruyLopez.name });
+  const [fen, setFen] = useState(chessGame.fen());
+  const [openingCode, setOpeningCode] = useState<Opening["code"]>("ruyLopez");
+  const [boardWidth, setBoardWidth] = useState<number>(window.innerWidth - 40);
 
-  const opening = openings[selectedOpening.code as keyof typeof openings];
+  const opening = useMemo(
+    () => openings[openingCode as keyof typeof openings],
+    [openingCode]
+  );
 
-  // handle piece drop
-  function onPieceDrop({ sourceSquare, targetSquare }: PieceDropHandlerArgs) {
-    // type narrow targetSquare potentially being null (e.g. if dropped off board)
-    if (!targetSquare) {
-      return false;
+  const ply = chessGame.history().length;
+  const turn = chessGame.turn();
+
+  const arrows = useMemo(() => {
+    const move = opening.moves[ply];
+    if (!move) return [];
+    return [
+      {
+        startSquare: move.from,
+        endSquare: move.to,
+        color: turn === "w" ? "blue" : "red",
+      },
+    ];
+  }, [opening, ply, turn]);
+
+  /* Resize handler para responsive */
+  useEffect(() => {
+    function handleResize() {
+      const padding = 40;
+      const maxWidth = 720;
+      setBoardWidth(Math.min(window.innerWidth - padding, maxWidth));
     }
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-    // try to make the move according to chess.js logic
-    try {
-      const isMoveAllowed =
-        opening.moves[chessGame.history().length].from === sourceSquare &&
-        opening.moves[chessGame.history().length].to === targetSquare;
-
-      if (isMoveAllowed) {
-        chessGame.move({
-          from: sourceSquare,
-          to: targetSquare,
-          promotion: "q", // always promote to a queen for example simplicity
-        });
-        setChessPosition(chessGame.fen());
-      } else {
-        return false;
-      }
-
-      const move = opening.moves[chessGame.history().length];
-
-      setTimeout(() => {
-        chessGame.move({
-          from: move.from,
-          to: move.to,
-        });
-        setChessPosition(chessGame.fen());
-      }, 500);
-      // update the position state upon successful move to trigger a re-render of the chessboard
-
-      // return true as the move was successful
-      return true;
-    } catch {
-      // return false as the move was not successful
-      return false;
-    }
+  function resetGame() {
+    if (chessGame.history().length === 0) return;
+    chessGameRef.current = new Chess();
+    setFen(chessGameRef.current.fen()); // dispara el recalculo de arrows
   }
 
-  // set the chessboard options
-  const value = opening.arrows?.[chessGame.history().length];
-  const arrows = value ? [value] : [];
-
-  const resetGame = () => {
+  function handleOpeningChange(code: Opening["code"]) {
+    setOpeningCode(code);
     chessGameRef.current = new Chess();
-    setChessPosition(chessGameRef.current.fen());
-  };
+    setFen(chessGameRef.current.fen());
+  }
+
+  function onPieceDrop({ sourceSquare, targetSquare }: PieceDropHandlerArgs) {
+    if (!targetSquare) return false;
+
+    const ply = getPly(chessGame);
+    const mustPlay = expectedMove(opening, ply);
+
+    if (!mustPlay) return false;
+
+    const isExact =
+      mustPlay.from === sourceSquare && mustPlay.to === targetSquare;
+
+    if (!isExact) return false;
+
+    chessGame.move({ from: sourceSquare, to: targetSquare, promotion: "q" });
+    setFen(chessGame.fen());
+
+    const reply = expectedMove(opening, getPly(chessGame));
+    if (reply) {
+      setTimeout(() => {
+        chessGame.move({ from: reply.from, to: reply.to });
+        setFen(chessGame.fen());
+      }, 450);
+    }
+
+    return true;
+  }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#111", color: "#eee" }}>
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: 16 }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#111",
+        color: "#eee",
+        fontFamily: "system-ui, sans-serif",
+        padding: 16,
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 900,
+          margin: "0 auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+        }}
+      >
         <header
           style={{
             display: "flex",
-            alignItems: "center",
+            flexWrap: "wrap",
             justifyContent: "space-between",
-            marginBottom: 12,
+            alignItems: "center",
+            gap: 12,
           }}
         >
           <select
-            value={selectedOpening.code}
-            onChange={(e) => {
-              resetGame();
-              console.log(openings[e.target.value as keyof typeof openings]);
-              setSelectedOpening({
-                name: openings[e.target.value as keyof typeof openings].name,
-                code: e.target.value as Opening["code"],
-              });
+            value={openingCode}
+            onChange={(e) =>
+              handleOpeningChange(e.target.value as Opening["code"])
+            }
+            style={{
+              padding: "6px 12px",
+              borderRadius: 8,
+              background: "#222",
+              color: "#eee",
+              border: "1px solid #444",
+              fontSize: 14,
             }}
-            className="border rounded p-1"
           >
-            <option value={openings.ruyLopez.code}>
-              {openings.ruyLopez.name}
-            </option>
-            <option value={openings.pastor.code}>{openings.pastor.name}</option>
+            {Object.values(openings).map((op) => (
+              <option key={op.code} value={op.code}>
+                {op.name}
+              </option>
+            ))}
           </select>
-          <h1 style={{ fontSize: 18, fontWeight: 600 }}>
-            Chess Board (Minimal)
+
+          <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>
+            {opening.name}
           </h1>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              onClick={() => resetGame()}
-              style={{
-                background: "#2d2d2d",
-                border: 0,
-                padding: "8px 12px",
-                borderRadius: 8,
-                color: "#eee",
-                cursor: "pointer",
-              }}
-            >
-              Reset
-            </button>
-          </div>
+
+          <button
+            onClick={resetGame}
+            style={{
+              background: "#2d2d2d",
+              border: 0,
+              padding: "8px 16px",
+              borderRadius: 8,
+              color: "#eee",
+              cursor: "pointer",
+              fontWeight: 500,
+            }}
+          >
+            Reset
+          </button>
         </header>
 
-        <Chessboard
-          options={{
-            position: chessPosition,
-            onPieceDrop,
-            id: "play-vs-random",
-            allowDragging: chessGame.turn() === "w",
-            animationDurationInMs: 0,
-            allowDrawingArrows: true,
-            arrows,
-          }}
-        />
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <Chessboard
+            options={{
+              id: "opening-script",
+              position: fen,
+              onPieceDrop,
+              allowDragging:
+                chessGame.turn() === "w" &&
+                Boolean(expectedMove(opening, getPly(chessGame))),
+              animationDurationInMs: 150,
+              arrows,
+              allowDrawingArrows: true,
+              boardStyle: {
+                width: `${boardWidth}px`,
+                height: `${boardWidth}px`,
+              },
+            }}
+          />
+        </div>
       </div>
     </div>
   );
