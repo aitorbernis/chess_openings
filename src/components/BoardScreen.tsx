@@ -165,7 +165,7 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
       {sideRight && (
         <aside
           style={{
-            flex: `0 0 ${SIDEBAR_W}px`,
+            flex: `0 0 400px`,
             width: SIDEBAR_W,
             maxHeight: "calc(100vh - 170px)",
             overflow: "auto",

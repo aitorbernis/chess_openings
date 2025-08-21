@@ -1,8 +1,8 @@
 import type { Opening } from "../types";
-// import ruyLopez from "./standard";
+import ruyLopez from "./standard";
 
 const berlinDefense: Opening = {
-  moves: [{ from: "g8", to: "f6" }],
+  moves: [...ruyLopez.moves, { from: "g8", to: "f6" }],
   family: {
     code: "ruyLopez",
     name: "Ruy López",

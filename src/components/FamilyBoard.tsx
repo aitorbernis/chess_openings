@@ -22,9 +22,9 @@ export const FamilyBoard = ({ family, onBack }: Props) => {
   const children = variants.filter((v) => v.code !== family.defaultCode);
 
   // ————— utils —————
-  const movesToText = (op?: Opening, max = 16) =>
-    op?.moves
-      ? op.moves
+  const movesToText = (moves?: Opening["moves"], max = 16) =>
+    moves
+      ? moves
           .slice(0, max)
           .map((m) => m.to)
           .join(" ")
@@ -34,7 +34,11 @@ export const FamilyBoard = ({ family, onBack }: Props) => {
   const toLinesByCode = useMemo(() => {
     const map: Record<string, string> = {};
     for (const op of variants) {
-      map[op.code] = movesToText(op);
+      const moves = op.isDefault
+        ? op.moves
+        : op.moves.slice(variants.find((v) => v.isDefault)?.moves.length);
+      console.log(moves);
+      map[op.code] = movesToText(moves);
     }
     return map;
   }, [variants]);
@@ -45,66 +49,77 @@ export const FamilyBoard = ({ family, onBack }: Props) => {
     onClick,
     level = 0,
     hint,
-    title,
   }: {
     label: string;
     active?: boolean;
     onClick: () => void;
     level?: number;
-    hint?: string; // ← secuencia de “to”
-    title?: string; // ← tooltip completo
-  }) => (
-    <button
-      onClick={onClick}
-      title={title ?? hint}
-      style={{
-        width: "100%",
-        textAlign: "left",
-        padding: "8px 10px",
-        marginLeft: level * 12,
-        borderRadius: 8,
-        border: 0,
-        background: active ? "#223344" : "transparent",
-        color: "#eee",
-        cursor: "pointer",
-        boxShadow: active ? "inset 0 0 0 2px #6cf" : "inset 0 0 0 1px #2a2a2a",
+    hint?: string;
+  }) => {
+    const onHintWheel: React.WheelEventHandler<HTMLSpanElement> = (e) => {
+      // Convierte el scroll vertical del trackpad en horizontal del hint
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.currentTarget.scrollLeft += e.deltaY;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
 
-        // — sin cambiar la apariencia base, solo distribuimos el contenido —
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 8,
-      }}
-    >
-      <span
+    return (
+      <button
+        onClick={onClick}
         style={{
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
+          width: "100%",
+          textAlign: "left",
+          padding: "8px 10px",
+          marginLeft: level * 12,
+          borderRadius: 8,
+          border: 0,
+          background: active ? "#223344" : "transparent",
+          color: "#eee",
+          cursor: "pointer",
+          boxShadow: active
+            ? "inset 0 0 0 2px #6cf"
+            : "inset 0 0 0 1px #2a2a2a",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 8,
         }}
       >
-        {label}
-      </span>
-
-      {/* pista con la secuencia de 'to' */}
-      {hint ? (
         <span
           style={{
-            opacity: 0.7,
-            fontSize: 12,
-            fontFamily:
-              'ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace',
-            maxWidth: "55%",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
           }}
         >
-          {hint}
+          {label}
         </span>
-      ) : null}
-    </button>
-  );
+
+        {hint && (
+          <span
+            onWheel={onHintWheel}
+            title={hint}
+            style={{
+              opacity: 0.7,
+              fontSize: 12,
+              fontFamily:
+                'ui-monospace, SFMono-Regular, Menlo, Monaco, "Courier New", monospace',
+              maxWidth: "55%",
+              whiteSpace: "nowrap",
+              overflowX: "auto", // ← sólo el hint scrollea
+              overflowY: "hidden",
+              WebkitOverflowScrolling: "touch",
+              scrollbarWidth: "thin", // Firefox
+            }}
+          >
+            {hint}
+          </span>
+        )}
+      </button>
+    );
+  };
 
   const sideRight = (
     <nav>
@@ -127,7 +142,6 @@ export const FamilyBoard = ({ family, onBack }: Props) => {
           onClick={() => setVariantCode(parent.code)}
           level={0}
           hint={toLinesByCode[parent.code]}
-          title={toLinesByCode[parent.code]}
         />
       )}
 
@@ -141,7 +155,6 @@ export const FamilyBoard = ({ family, onBack }: Props) => {
             onClick={() => setVariantCode(op.code)}
             level={1}
             hint={toLinesByCode[op.code]}
-            title={toLinesByCode[op.code]}
           />
         ))}
       </div>
