@@ -8,7 +8,6 @@ type Props = {
   code: Opening["code"];
   items: Record<string, Opening>;
   onBack: () => void;
-  footer?: React.ReactNode; // (queda por compatibilidad; no lo usamos)
   sideRight?: React.ReactNode; // 👈 NUEVO: panel lateral derecho
 };
 
@@ -20,9 +19,28 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
   const [fen, setFen] = useState(chessGameRef.current.fen());
 
   useEffect(() => {
-    chessGameRef.current = new Chess();
-    setFen(chessGameRef.current.fen());
-  }, [code]);
+    const game = new Chess();
+
+    if (!opening.isDefault) {
+      // 1) reproducir la línea estándar de la familia
+      const standard = items[opening.family.code];
+      for (const mv of standard.moves) {
+        game.move({ from: mv.from, to: mv.to });
+      }
+
+      const nextMove = opening?.moves[getPly(game)];
+
+      setFen(game.fen());
+      setTimeout(() => {
+        game.move({ from: nextMove.from, to: nextMove.to });
+        setFen(game.fen());
+      }, 450);
+    } else {
+      setFen(game.fen());
+    }
+
+    chessGameRef.current = game;
+  }, [opening, items]);
 
   const arrows = useMemo(() => {
     const game = chessGameRef.current;

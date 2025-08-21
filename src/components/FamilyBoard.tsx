@@ -33,7 +33,9 @@ export const FamilyBoard = ({ family, onBack }: Props) => {
   // Componemos una tabla {code: "e4 e5 Cf3 ..."} para no recalcular en cada render
   const toLinesByCode = useMemo(() => {
     const map: Record<string, string> = {};
-    for (const op of variants) map[op.code] = movesToText(op);
+    for (const op of variants) {
+      map[op.code] = movesToText(op);
+    }
     return map;
   }, [variants]);
 
