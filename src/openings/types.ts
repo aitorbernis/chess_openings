@@ -8,4 +8,5 @@ export interface Opening {
     name: string; // p.ej. "Ruy López"
   };
   isDefault?: boolean; // 👈 marca la variante por defecto dentro de la familia
+  endFen?: string; // 👈 el fen final de la apertura
 }

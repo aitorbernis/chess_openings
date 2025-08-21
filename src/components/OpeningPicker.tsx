@@ -5,7 +5,7 @@ type Props = {
   onSelect: (code: Opening["code"]) => void;
 };
 
-export default function OpeningPicker({ items, onSelect }: Props) {
+export const OpeningPicker = ({ items, onSelect }: Props) => {
   const list = Object.values(items);
 
   return (
@@ -64,4 +64,6 @@ export default function OpeningPicker({ items, onSelect }: Props) {
       </div>
     </div>
   );
-}
+};
+
+export default OpeningPicker;

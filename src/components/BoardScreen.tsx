@@ -8,26 +8,17 @@ type Props = {
   code: Opening["code"];
   items: Record<string, Opening>;
   onBack: () => void;
-  footer?: React.ReactNode;
-  fullHeight?: boolean;
+  footer?: React.ReactNode; // (queda por compatibilidad; no lo usamos)
+  sideRight?: React.ReactNode; // 👈 NUEVO: panel lateral derecho
 };
 
-function getPly(game: Chess) {
-  return game.history().length;
-}
+const getPly = (game: Chess) => game.history().length;
 
-export default function BoardScreen({
-  code,
-  items,
-  onBack,
-  footer,
-  fullHeight = true,
-}: Props) {
+export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
   const opening = items[code];
   const chessGameRef = useRef(new Chess());
   const [fen, setFen] = useState(chessGameRef.current.fen());
 
-  // Reset al cambiar de apertura
   useEffect(() => {
     chessGameRef.current = new Chess();
     setFen(chessGameRef.current.fen());
@@ -43,18 +34,18 @@ export default function BoardScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opening, fen]);
 
-  function resetGame() {
+  const resetGame = () => {
     chessGameRef.current = new Chess();
-    setFen(chessGameRef.current.fen()); // recalcula arrows por dependencia en fen
-  }
+    setFen(chessGameRef.current.fen());
+  };
 
-  function expectedMove(ply: number) {
-    return opening?.moves[ply];
-  }
+  const expectedMove = (ply: number) => opening?.moves[ply];
 
-  function onPieceDrop({ sourceSquare, targetSquare }: PieceDropHandlerArgs) {
+  const onPieceDrop = ({
+    sourceSquare,
+    targetSquare,
+  }: PieceDropHandlerArgs) => {
     if (!targetSquare || !opening) return false;
-
     const game = chessGameRef.current;
     const ply = getPly(game);
     const mustPlay = expectedMove(ply);
@@ -75,7 +66,7 @@ export default function BoardScreen({
       }, 450);
     }
     return true;
-  }
+  };
 
   if (!opening) {
     return (
@@ -90,9 +81,7 @@ export default function BoardScreen({
         }}
       >
         <div>
-          <p style={{ marginBottom: 12 }}>
-            No encontré la apertura &ldquo;{code}&rdquo;.
-          </p>
+          <p style={{ marginBottom: 12 }}>No encontré la apertura “{code}”.</p>
           <button
             onClick={onBack}
             style={{
@@ -111,61 +100,29 @@ export default function BoardScreen({
     );
   }
 
-  const boardSize = "min(720px, calc(100vw - 40px))";
+  // --- constants para el layout ---
+  const SIDEBAR_W = 350; // ancho del panel derecho
+  const GAP = 16; // separación entre tablero y panel
+  const PADDING_X = 32; // padding horizontal del contenedor principal (16 + 16)
+
+  // 👇 el tablero usará todo el ancho disponible menos panel+gap+padding
+  const boardSize = `min(720px, calc(100vw - ${
+    SIDEBAR_W + GAP + PADDING_X
+  }px))`;
 
   return (
+    // Fila: tablero + panel
     <div
       style={{
-        minHeight: fullHeight ? "100vh" : "auto", // 👈 clave
-        background: "#111",
-        color: "#eee",
-        padding: 16,
-        fontFamily: "system-ui, sans-serif",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        gap: GAP,
+        flexWrap: "wrap", // en pantallas muy estrechas el panel caerá debajo (deseado)
       }}
     >
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 12, // 16 -> 12 para compactar
-          gap: 12,
-        }}
-      >
-        <button
-          onClick={onBack}
-          style={{
-            background: "#222",
-            color: "#eee",
-            border: "none",
-            padding: "8px 12px",
-            borderRadius: 6,
-            cursor: "pointer",
-          }}
-        >
-          ← Volver
-        </button>
-
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
-          {opening.name}
-        </h1>
-
-        <button
-          onClick={resetGame}
-          style={{
-            background: "#222",
-            color: "#eee",
-            border: "none",
-            padding: "8px 12px",
-            borderRadius: 6,
-            cursor: "pointer",
-          }}
-        >
-          Reset
-        </button>
-      </header>
-
-      <div style={{ display: "flex", justifyContent: "center" }}>
+      {/* Columna del tablero, con el mismo boardSize */}
+      <div style={{ width: boardSize }}>
         <Chessboard
           options={{
             id: "opening-script",
@@ -178,27 +135,48 @@ export default function BoardScreen({
             allowDrawingArrows: true,
             arrows,
             boardStyle: {
-              width: boardSize,
-              height: boardSize,
+              width: "100%", // ocupa TODO el contenedor de la izquierda
+              height: boardSize, // cuadrado exacto, acoplado al cálculo anterior
             },
           }}
         />
       </div>
 
-      {/* Footer interno: queda pegado al tablero, sin scroll extra */}
-      {footer && (
-        <div
+      {/* Panel derecho (árbol) con ancho fijo */}
+
+      {sideRight && (
+        <aside
           style={{
-            marginTop: 12, // compacto
-            display: "flex",
-            gap: 8,
-            flexWrap: "wrap",
-            justifyContent: "center",
+            flex: `0 0 ${SIDEBAR_W}px`,
+            width: SIDEBAR_W,
+            maxHeight: "calc(100vh - 170px)",
+            overflow: "auto",
+            background: "#151515",
+            border: "1px solid #2a2a2a",
+            borderRadius: 12,
+            padding: 8,
           }}
         >
-          {footer}
-        </div>
+          <div style={{ justifySelf: "end" }}>
+            <button
+              onClick={resetGame}
+              style={{
+                background: "#222",
+                color: "#eee",
+                border: "none",
+                padding: "8px 12px",
+                borderRadius: 6,
+                cursor: "pointer",
+              }}
+            >
+              Reset
+            </button>
+          </div>
+          {sideRight}
+        </aside>
       )}
     </div>
   );
-}
+};
+
+export default BoardScreen;

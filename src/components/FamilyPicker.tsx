@@ -5,7 +5,7 @@ type Props = {
   onSelectFamily: (code: string) => void;
 };
 
-export default function FamilyPicker({ families, onSelectFamily }: Props) {
+export const FamilyPicker = ({ families, onSelectFamily }: Props) => {
   const list = Object.values(families);
 
   return (
@@ -38,7 +38,6 @@ export default function FamilyPicker({ families, onSelectFamily }: Props) {
             key={fam.code}
             onClick={() => onSelectFamily(fam.code)}
             style={{
-              padding: "16px 18px",
               fontSize: 16,
               borderRadius: 10,
               border: "1px solid #333",
@@ -62,4 +61,6 @@ export default function FamilyPicker({ families, onSelectFamily }: Props) {
       </div>
     </div>
   );
-}
+};
+
+export default FamilyPicker;

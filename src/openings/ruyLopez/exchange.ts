@@ -1,12 +1,9 @@
 import type { Opening } from "../types";
+import ruyLopez from "./standard";
 
-const exchangeRuyLopez: Opening = {
+const exchange: Opening = {
   moves: [
-    { from: "e2", to: "e4" },
-    { from: "e7", to: "e5" },
-    { from: "g1", to: "f3" },
-    { from: "b8", to: "c6" },
-    { from: "f1", to: "b5" },
+    ...ruyLopez.moves,
     { from: "a7", to: "a6" },
     { from: "b5", to: "c6" },
     { from: "d7", to: "c6" },
@@ -21,8 +18,8 @@ const exchangeRuyLopez: Opening = {
     name: "Ruy López",
   },
   isDefault: false,
-  code: "exchangeRuyLopez",
+  code: "exchange",
   name: "Ruy López (Variante del Cambio)",
 };
 
-export default exchangeRuyLopez;
+export default exchange;

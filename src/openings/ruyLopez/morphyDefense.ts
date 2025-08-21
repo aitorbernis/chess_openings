@@ -1,14 +1,8 @@
 import type { Opening } from "../types";
+import ruyLopez from "./standard";
 
 const morphyDefense: Opening = {
-  moves: [
-    { from: "e2", to: "e4" },
-    { from: "e7", to: "e5" },
-    { from: "g1", to: "f3" },
-    { from: "b8", to: "c6" },
-    { from: "f1", to: "b5" },
-    { from: "a7", to: "a6" },
-  ],
+  moves: [...ruyLopez.moves, { from: "a7", to: "a6" }],
   family: {
     code: "ruyLopez",
     name: "Ruy López",

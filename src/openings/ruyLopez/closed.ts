@@ -1,12 +1,9 @@
 import type { Opening } from "../types";
+import ruyLopez from "./standard";
 
-const closedRuyLopez: Opening = {
+const closed: Opening = {
   moves: [
-    { from: "e2", to: "e4" },
-    { from: "e7", to: "e5" },
-    { from: "g1", to: "f3" },
-    { from: "b8", to: "c6" },
-    { from: "f1", to: "b5" },
+    ...ruyLopez.moves,
     { from: "a7", to: "a6" },
     { from: "b5", to: "a4" },
     { from: "g8", to: "f6" },
@@ -24,8 +21,8 @@ const closedRuyLopez: Opening = {
     name: "Ruy López",
   },
   isDefault: false,
-  code: "closedRuyLopez",
+  code: "closed",
   name: "Ruy López Cerrada",
 };
 
-export default closedRuyLopez;
+export default closed;

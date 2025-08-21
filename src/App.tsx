@@ -4,7 +4,7 @@ import type { FamilyGroup } from "./openings/openings";
 import FamilyPicker from "./components/FamilyPicker";
 import FamilyBoard from "./components/FamilyBoard";
 
-export default function App() {
+const App = () => {
   const [familyCode, setFamilyCode] = useState<string | null>(null);
 
   if (!familyCode) {
@@ -26,10 +26,6 @@ export default function App() {
     );
   }
 
-  return (
-    <FamilyBoard
-      family={family}
-      onBack={() => setFamilyCode(null)} // ← sale a la lista de familias
-    />
-  );
-}
+  return <FamilyBoard family={family} onBack={() => setFamilyCode(null)} />;
+};
+export default App;
