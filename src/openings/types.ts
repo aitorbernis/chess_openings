@@ -7,6 +7,7 @@ export interface Opening {
     code: string; // p.ej. "ruyLopez"
     name: string; // p.ej. "Ruy López"
   };
+  algebraic?: Array<{ white: string; black: string | null }>; // algebraic
   isDefault?: boolean; // 👈 marca la variante por defecto dentro de la familia
   endFen?: string; // 👈 el fen final de la apertura
 }

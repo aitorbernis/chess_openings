@@ -11,14 +11,14 @@ type Props = {
   sideRight?: React.ReactNode; // 👈 NUEVO: panel lateral derecho
 };
 
-const OPONENT_MOVEMENT_DELAY = 1000;
+const getPly = (game: Chess) => game.history().length;
 
 export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
   const opening = items[code];
   const chessGameRef = useRef(new Chess());
   const [fen, setFen] = useState(chessGameRef.current.fen());
+  const opponentMovementDelay = 1000;
 
-  const getPly = (game: Chess) => game.history().length;
   useEffect(() => {
     const game = new Chess();
 
@@ -35,7 +35,7 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
       setTimeout(() => {
         game.move({ from: nextMove.from, to: nextMove.to });
         setFen(game.fen());
-      }, 450);
+      }, opponentMovementDelay);
     } else {
       setFen(game.fen());
     }
@@ -82,8 +82,28 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
       setTimeout(() => {
         game.move({ from: reply.from, to: reply.to });
         setFen(game.fen());
-      }, 450);
+      }, opponentMovementDelay);
     }
+    return true;
+  };
+
+  const goToPly = (targetPly: number) => {
+    if (!opening) return false;
+    const line = opening.moves ?? [];
+    const game = new Chess();
+
+    // Reproducir movimientos hasta targetPly (clamp por seguridad)
+    const upto = Math.min(Math.max(0, targetPly), line.length);
+    for (let i = 0; i < upto; i++) {
+      const mv = line[i];
+      try {
+        game.move({ from: mv.from, to: mv.to, promotion: "q" });
+      } catch {
+        break; // por si algo fuese ilegal en datos
+      }
+    }
+    chessGameRef.current = game;
+    setFen(game.fen());
     return true;
   };
 
@@ -129,6 +149,13 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
     SIDEBAR_W + GAP + PADDING_X
   }px))`;
 
+  const WHITE_ARROW_COLOR = "blue";
+  const BLACK_ARROW_COLOR = "red";
+
+  const plyNow = getPly(chessGameRef.current);
+  const fullIdxNow = Math.floor(plyNow / 2);
+  const isWhitesTurnNow = chessGameRef.current.turn() === "w";
+
   return (
     // Fila: tablero + panel
     <div
@@ -140,12 +167,94 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
         flexWrap: "wrap", // en pantallas muy estrechas el panel caerá debajo (deseado)
       }}
     >
+      {/* Título con coloreado dinámico y navegación por click (antes de la jugada) */}
+      <div style={{ width: "100%", textAlign: "center", marginBottom: 16 }}>
+        <h1 style={{ fontSize: 28, marginBottom: 24, lineHeight: 1.4 }}>
+          {opening?.algebraic?.map((mv, i) => {
+            const isThisWhite = i === fullIdxNow && isWhitesTurnNow;
+            const isThisBlack = i === fullIdxNow && !isWhitesTurnNow;
+
+            // Objetivo: dejar el tablero ANTES de esa jugada
+            const whiteIdxBefore = 2 * i; // 0, 2, 4, ...
+            const blackIdxBefore = 2 * i + 1; // 1, 3, 5, ...
+
+            return (
+              <span
+                key={i}
+                style={{ display: "inline-block", marginRight: 12 }}
+              >
+                <span style={{ opacity: 0.6, marginRight: 6 }}>{i + 1}.</span>
+
+                {/* BLANCAS (clic: volver a la posición anterior a este SAN) */}
+                <span
+                  role="button"
+                  aria-label={`Ir antes de ${i + 1}. ${mv.white}`}
+                  onClick={() => goToPly(whiteIdxBefore)}
+                  style={{
+                    color: isThisWhite ? WHITE_ARROW_COLOR : "#eee",
+                    fontWeight: isThisWhite ? 700 : 400,
+                    cursor: "pointer",
+                    userSelect: "none",
+                    padding: "2px 4px",
+                    borderRadius: 6,
+                    transition: "color 120ms linear, background 120ms linear",
+                    background: isThisWhite
+                      ? "rgba(0,0,255,0.08)"
+                      : "transparent",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.textDecoration = "underline")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.textDecoration = "none")
+                  }
+                >
+                  {mv.white}
+                </span>
+
+                {/* NEGRAS (clic: posición tras 1 jugada de blancas, toca negras) */}
+                {mv.black && (
+                  <>
+                    {" "}
+                    <span
+                      role="button"
+                      aria-label={`Ir antes de ${i + 1}... ${mv.black}`}
+                      onClick={() => goToPly(blackIdxBefore)}
+                      style={{
+                        color: isThisBlack ? BLACK_ARROW_COLOR : "#eee",
+                        fontWeight: isThisBlack ? 700 : 400,
+                        cursor: "pointer",
+                        userSelect: "none",
+                        padding: "2px 4px",
+                        borderRadius: 6,
+                        transition:
+                          "color 120ms linear, background 120ms linear",
+                        background: isThisBlack
+                          ? "rgba(255,0,0,0.08)"
+                          : "transparent",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.textDecoration = "underline")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.textDecoration = "none")
+                      }
+                    >
+                      {mv.black}
+                    </span>
+                  </>
+                )}
+              </span>
+            );
+          })}
+        </h1>
+      </div>
+
       {/* Columna del tablero, con el mismo boardSize */}
       <div style={{ width: boardSize }}>
         <Chessboard
           options={{
             id: "opening-script",
-
             position: fen,
             onPieceDrop,
             allowDragging:

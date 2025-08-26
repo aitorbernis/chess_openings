@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import type { FamilyGroup } from "../openings/openings";
 import type { Opening } from "../openings/types";
-import BoardScreen from "./BoardScreen";
+import BoardScreen from "./OpeningAnalysis";
 
 type Props = {
   family: FamilyGroup;
@@ -37,7 +37,6 @@ export const FamilyBoard = ({ family, onBack }: Props) => {
       const moves = op.isDefault
         ? op.moves
         : op.moves.slice(variants.find((v) => v.isDefault)?.moves.length);
-      console.log(moves);
       map[op.code] = movesToText(moves);
     }
     return map;
@@ -162,12 +161,14 @@ export const FamilyBoard = ({ family, onBack }: Props) => {
   );
 
   return (
-    <BoardScreen
-      code={variantCode}
-      items={family.variants}
-      onBack={onBack}
-      sideRight={sideRight}
-    />
+    <div style={{ marginLeft: 200 }}>
+      <BoardScreen
+        code={variantCode}
+        items={family.variants}
+        onBack={onBack}
+        sideRight={sideRight}
+      />
+    </div>
   );
 };
 

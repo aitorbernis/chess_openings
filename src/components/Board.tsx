@@ -11,14 +11,13 @@ type Props = {
   sideRight?: React.ReactNode; // 👈 NUEVO: panel lateral derecho
 };
 
-const OPONENT_MOVEMENT_DELAY = 1000;
+const getPly = (game: Chess) => game.history().length;
 
-export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
+export const Board = ({ code, items }: Props) => {
   const opening = items[code];
   const chessGameRef = useRef(new Chess());
   const [fen, setFen] = useState(chessGameRef.current.fen());
 
-  const getPly = (game: Chess) => game.history().length;
   useEffect(() => {
     const game = new Chess();
 
@@ -53,11 +52,6 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opening, fen]);
 
-  const resetGame = () => {
-    chessGameRef.current = new Chess();
-    setFen(chessGameRef.current.fen());
-  };
-
   const expectedMove = (ply: number) => opening?.moves[ply];
 
   const onPieceDrop = ({
@@ -87,38 +81,6 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
     return true;
   };
 
-  if (!opening) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#111",
-          color: "#eee",
-          display: "grid",
-          placeItems: "center",
-          fontFamily: "system-ui, sans-serif",
-        }}
-      >
-        <div>
-          <p style={{ marginBottom: 12 }}>No encontré la apertura “{code}”.</p>
-          <button
-            onClick={onBack}
-            style={{
-              background: "#222",
-              color: "#eee",
-              border: "none",
-              padding: "8px 12px",
-              borderRadius: 6,
-              cursor: "pointer",
-            }}
-          >
-            ← Volver
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // --- constants para el layout ---
   const SIDEBAR_W = 350; // ancho del panel derecho
   const GAP = 16; // separación entre tablero y panel
@@ -135,9 +97,6 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
       style={{
         display: "flex",
         justifyContent: "center",
-        alignItems: "flex-start",
-        gap: GAP,
-        flexWrap: "wrap", // en pantallas muy estrechas el panel caerá debajo (deseado)
       }}
     >
       {/* Columna del tablero, con el mismo boardSize */}
@@ -145,7 +104,6 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
         <Chessboard
           options={{
             id: "opening-script",
-
             position: fen,
             onPieceDrop,
             allowDragging:
@@ -161,42 +119,8 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
           }}
         />
       </div>
-
-      {/* Panel derecho (árbol) con ancho fijo */}
-
-      {sideRight && (
-        <aside
-          style={{
-            flex: `0 0 400px`,
-            width: SIDEBAR_W,
-            maxHeight: "calc(100vh - 170px)",
-            overflow: "auto",
-            background: "#151515",
-            border: "1px solid #2a2a2a",
-            borderRadius: 12,
-            padding: 8,
-          }}
-        >
-          <div style={{ justifySelf: "end" }}>
-            <button
-              onClick={resetGame}
-              style={{
-                background: "#222",
-                color: "#eee",
-                border: "none",
-                padding: "8px 12px",
-                borderRadius: 6,
-                cursor: "pointer",
-              }}
-            >
-              Reset
-            </button>
-          </div>
-          {sideRight}
-        </aside>
-      )}
     </div>
   );
 };
 
-export default BoardScreen;
+export default Board;

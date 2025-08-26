@@ -12,6 +12,12 @@ const ruyLopez: Opening = {
     code: "ruyLopez",
     name: "Ruy López",
   },
+  algebraic: [
+    { white: "e4", black: "e5" },
+    { white: "Nf3", black: "Nc6" },
+    { white: "Bb5", black: null },
+  ],
+
   isDefault: true,
   code: "ruyLopez",
   name: "Ruy Lopez",
