@@ -17,7 +17,7 @@ export const BoardScreen = ({ code, items, onBack, sideRight }: Props) => {
   const opening = items[code];
   const chessGameRef = useRef(new Chess());
   const [fen, setFen] = useState(chessGameRef.current.fen());
-  const opponentMovementDelay = 1000;
+  const opponentMovementDelay = 450;
 
   useEffect(() => {
     const game = new Chess();
